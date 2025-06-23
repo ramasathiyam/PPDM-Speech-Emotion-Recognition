@@ -1,4 +1,4 @@
-# streamlit_app.py (dengan prediksi probabilitas)
+# streamlit_app.py (dengan prediksi probabilitas + deteksi file uji)
 import streamlit as st
 import numpy as np
 import librosa
@@ -35,6 +35,12 @@ model = load_model("cnn_model_best.keras")
 with open("label_encoder.pkl", "rb") as f:
     le = pickle.load(f)
 
+# === Muat daftar file uji jika tersedia ===
+test_filenames = set()
+if os.path.exists("test_filenames.txt"):
+    with open("test_filenames.txt", "r") as f:
+        test_filenames = set(line.strip().lower() for line in f)
+
 # === UI Streamlit ===
 st.set_page_config(page_title="Audio Emotion Recognition", page_icon="🎤", layout="centered")
 st.title("🎤 Audio Emotion Recognition\n(CNN)")
@@ -59,3 +65,9 @@ if uploaded_files:
             st.markdown("### Probabilitas Emosi:")
             for i, label in enumerate(le.classes_):
                 st.write(f"{label.capitalize()}: {pred_probs[i]*100:.2f}%")
+
+            # ✅ Tandai jika termasuk file uji
+            if uploaded_file.name.lower() in test_filenames:
+                st.info("📎 File ini merupakan bagian dari data uji saat training (belum pernah dilihat saat pelatihan).")
+            else:
+                st.success("🆕 File ini bukan bagian dari data training/testing sebelumnya.")
